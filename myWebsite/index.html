@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register & Login</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#020024,#090979,#00d4ff);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+
+.card{
+  background:#111;
+  padding:20px;
+  border-radius:15px;
+  width:320px;
+}
+
+input, select{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:none;
+  background:#222;
+  color:rgb(59, 216, 27);
+}
+
+button{
+  width:100%;
+  padding:12px;
+  background:linear-gradient(90deg,#7b2ff7,#f107a3);
+  border:none;
+  border-radius:10px;
+  color:rgb(197, 38, 38);
+  cursor:pointer;
+}
+
+a{color:#00d4ff; cursor:pointer;}
+</style>
+</head>
+
+<body>
+
+<!-- REGISTER -->
+<div class="card" id="registerForm">
+<h2>creat acount payearn business</h2>
+
+<input type="text" id="regUsername" placeholder="Username">
+<input type="email" id="regEmail" placeholder="Email">
+<input type="text" id="regPhone" placeholder="Phone Number">
+
+<select id="regCountry">
+<option>Rwanda</option>
+<option>Uganda</option>
+<option>Kenya</option>
+<option>Nigeria</option>
+</select>
+
+<input type="password" id="regPassword" placeholder="Password">
+<input type="password" id="regConfirm" placeholder="Confirm Password">
+
+<button onclick="register()">Create Account</button>
+
+<p>Already have account? <a onclick="showLogin()">Login</a></p>
+</div>
+
+<!-- LOGIN -->
+<div class="card" id="loginForm" style="display:none;">
+<h2>Login</h2>
+
+<input type="text" id="loginUsername" placeholder="Username">
+<input type="password" id="loginPassword" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<p>No account? <a onclick="showRegister()">Register</a></p>
+</div>
+
+<script>
+
+// SHOW FORMS
+function showLogin(){
+document.getElementById("registerForm").style.display="none";
+document.getElementById("loginForm").style.display="block";
+}
+
+function showRegister(){
+document.getElementById("registerForm").style.display="block";
+document.getElementById("loginForm").style.display="none";
+}
+
+// REGISTER
+function register(){
+let username=document.getElementById("regUsername").value.trim();
+let email=document.getElementById("regEmail").value.trim();
+let phone=document.getElementById("regPhone").value.trim();
+let country=document.getElementById("regCountry").value;
+let password=document.getElementById("regPassword").value;
+let confirm=document.getElementById("regConfirm").value;
+
+if(!username||!email||!phone||!country||!password||!confirm){
+alert("Fill all fields"); return;
+}
+
+if(password!==confirm){
+alert("Passwords not match"); return;
+}
+
+// SAVE USER
+let userData={
+username:username,
+password:password
+};
+
+localStorage.setItem("userData", JSON.stringify(userData));
+
+alert("Account created! Now login");
+
+// GO TO LOGIN
+showLogin();
+}
+
+// LOGIN
+function login(){
+let username=document.getElementById("loginUsername").value.trim();
+let password=document.getElementById("loginPassword").value;
+
+let savedUser=JSON.parse(localStorage.getItem("userData"));
+
+if(!savedUser){
+alert("No account found"); return;
+}
+
+if(username===savedUser.username && password===savedUser.password){
+
+// SAVE SESSION
+localStorage.setItem("currentUser", username);
+
+// GO TO PAYMENT
+window.location.href="payment.html";
+
+}else{
+alert("Wrong username or password");
+}
+}
+
+</script>
+
+</body>
+</html>

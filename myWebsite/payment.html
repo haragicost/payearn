@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment</title>
+<style>
+body{
+  font-family: Arial;
+  background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
+  color: #fff;
+  text-align: center;
+}
+.card{
+  background: #222;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 15px;
+}
+h2,h3{ color: #fff; }
+button, input{
+  width: 90%;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+.yellow{background: #f1c40f; color: #000;}
+.purple{background: #6c5ce7; color: #fff;}
+.dark{background: #222; color: #fff;}
+input{color: #000;}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h2>Payment Methods</h2>
+<h3 id="methodTitle">Pay With AIRTEL</h3>
+<p id="paymentSteps">*182*1# → Pay 7000 Rwf</p>
+
+<button class="yellow" onclick="switchPayment()">Switch Payment Method</button>
+<button class="purple" onclick="confirmPayment()">I Paid ✅</button>
+<button class="dark" onclick="logout()">LOGOUT</button>
+</div>
+
+<div class="card">
+<h4>Admin Control</h4>
+<label>Choose Method:</label>
+<select id="methodSelect">
+  <option value="airtel">Airtel</option>
+  <option value="mtn">MTN</option>
+</select>
+<input id="adminInput" placeholder="Enter new code/number">
+<p>Current Display Code: <span id="showCode">*182*1# → Pay 7000 Rwf</span></p>
+</div>
+
+<script>
+// Payment data
+let paymentData = {
+  airtel:"*182*1# → Pay 7000 Rwf",
+  mtn:"*182*1*1# → 0795522979 → Pay 7000 Rwf"
+};
+
+let currentMethod = "airtel";
+
+// Load display
+function loadPayment(){
+  document.getElementById("methodTitle").innerText = "Pay With " + currentMethod.toUpperCase();
+  document.getElementById("paymentSteps").innerText = paymentData[currentMethod];
+  document.getElementById("showCode").innerText = paymentData[currentMethod];
+}
+
+// Switch between Airtel and MTN
+function switchPayment(){
+  currentMethod = (currentMethod === "airtel") ? "mtn" : "airtel";
+  document.getElementById("methodSelect").value = currentMethod;
+  loadPayment();
+}
+
+// Admin input change
+document.getElementById("adminInput").addEventListener("input", function(){
+  let selected = document.getElementById("methodSelect").value;
+  paymentData[selected] = this.value || paymentData[selected];
+  if(selected === currentMethod) loadPayment();
+});
+
+// Confirm payment
+function confirmPayment(){
+  let user = localStorage.getItem("currentUser");
+  if(!user) return alert("No user logged in!");
+  localStorage.setItem(user+"_paid","true"); // ✅ flag user as paid
+  alert("Payment confirmed! Redirecting to dashboard...");
+  window.location.href = "dashboard.html"; // go to dashboard
+}
+
+// Logout
+function logout(){
+  localStorage.removeItem("currentUser");
+  window.location.href="index.html";
+}
+
+// Initial load
+loadPayment();
+</script>
+
+</body>
+</html>

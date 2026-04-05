@@ -1,0 +1,251 @@
+let active = localStorage.getItem(user+"_active");
+
+if(active !== "true"){
+alert("Account not active!");
+location.href="payment.html";
+}
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRO MAX Dashboard</title>
+<style>
+body{margin:0;font-family:Arial;background:#0f172a;color:white;}
+.header{padding:15px;background:linear-gradient(90deg,#7b2ff7,#f107a3);display:flex;justify-content:space-between;}
+.card{margin:10px;padding:15px;border-radius:12px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.purple{background:linear-gradient(90deg,#7b2ff7,#f107a3);}
+.blue{background:#1e3a8a;}
+.orange{background:#ea580c;}
+.green{background:#059669;}
+button{padding:10px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
+.menu{position:fixed;left:0;top:0;width:250px;height:100%;background:#111;display:none;padding:10px;overflow:auto;}
+.menu button{width:100%;}
+.section{display:none;}
+.active{display:block;}
+input{padding:10px;width:90%;margin:5px;border-radius:6px;border:none;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+<button onclick="toggleMenu()">☰</button>
+<b id="user"></b>
+<button onclick="toggleMode()">🌙</button>
+</div>
+
+<!-- MENU -->
+<div class="menu" id="menu">
+<button onclick="show('home')">🏠 Dashboard</button>
+<button onclick="show('earn')">📊 Earnings</button>
+<button onclick="show('withdraw')">💳 Withdraw</button>
+<button onclick="show('leader')">🏆 Leaderboard</button>
+<button onclick="show('videos')">🎥 Videos</button>
+<button onclick="show('spin')">🎯 Spin</button>
+<button onclick="show('daily')">🎁 Daily Bonus</button>
+<button onclick="show('ref')">👥 Referrals</button>
+<button onclick="logout()">🚪 Logout</button>
+</div>
+
+<!-- HOME -->
+<div id="home" class="section active">
+<div class="card purple">
+<h3>Hello <span id="username"></span></h3>
+<p>Activation Fee: 6000</p>
+<p>Total Income: <span id="income">0</span></p>
+<input id="refLink" readonly>
+<button onclick="copyLink()">Copy</button>
+<button onclick="shareWhatsApp()">WhatsApp</button>
+</div>
+
+<div class="grid">
+<div class="card blue"><h4>Main Balance</h4><p id="refBal">0</p></div>
+<div class="card orange"><h4>Total Withdraw</h4><p id="withd">0</p></div>
+</div>
+
+<div class="grid">
+<div class="card green"><h4>Total Referrals</h4><p id="refCount">0</p></div>
+<div class="card purple"><h4>Daily Bonus</h4><p id="dailyTxt">Available</p></div>
+</div>
+</div>
+
+<!-- EARNINGS -->
+<div id="earn" class="section"><h3>Earnings Breakdown</h3>
+<p>Referral: <span id="eRef">0</span></p>
+<p>Videos: <span id="eVid">0</span></p>
+<p>Spin: <span id="eSpin">0</span></p></div>
+
+<!-- WITHDRAW -->
+<div id="withdraw" class="section">
+<h3>Withdraw</h3>
+<input id="number" placeholder="Phone Number">
+<input id="amt" placeholder="Amount">
+<button onclick="withdraw()">Withdraw</button>
+<h4>History</h4>
+<table border="1" width="100%" id="history">
+<tr><th>Amount</th><th>Status</th></tr>
+</table>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leader" class="section"><h3>Top Referrers</h3><div id="board"></div></div>
+
+<!-- VIDEOS -->
+<div id="videos" class="section"><h3>Videos</h3><div id="vids"></div></div>
+
+<!-- SPIN -->
+<div id="spin" class="section"><h3>Spin (2)</h3>
+<button onclick="spin()">Spin</button>
+<p id="spinRes"></p></div>
+
+<!-- DAILY -->
+<div id="daily" class="section"><h3>Daily Bonus</h3>
+<button onclick="daily()">Claim</button></div>
+
+<!-- REF -->
+<div id="ref" class="section"><h3>My Referrals</h3>
+<button onclick="showRefs()">Show</button></div>
+
+<script>
+// ------------------ USER & PAYMENT CHECK ------------------
+let user = localStorage.getItem("currentUser");
+if(!user) location.href="index.html";
+
+document.getElementById("username").innerText=user;
+document.getElementById("user").innerText=user;
+
+// ✅ CHECK IF USER PAID
+let paid = localStorage.getItem(user+"_paid");
+if(!paid){
+    alert("Please complete payment first!");
+    window.location.href = "payment.html";
+}
+
+// ------------------ USER DATA ------------------
+let data = JSON.parse(localStorage.getItem(user)) || {refBal:0,income:0,withdrawn:0,spins:0,vid:0,spinE:0};
+let {refBal,income,withdrawn,spins,vid,spinE} = data;
+
+// ------------------ REF LINK ------------------
+let link = location.origin+"/index.html?ref="+user;
+document.getElementById("refLink").value=link;
+
+// SHARE FUNCTIONS
+function copyLink(){navigator.clipboard.writeText(link);alert("Copied");}
+function shareWhatsApp(){window.open("https://wa.me/?text="+encodeURIComponent("Join: "+link));}
+
+// SAVE & UPDATE
+function save(){localStorage.setItem(user,JSON.stringify({refBal,income,withdrawn,spins,vid,spinE}));}
+function update(){
+    document.getElementById("refBal").innerText=refBal;
+    document.getElementById("income").innerText=income;
+    document.getElementById("withd").innerText=withdrawn;
+    document.getElementById("eRef").innerText=refBal;
+    document.getElementById("eVid").innerText=vid;
+    document.getElementById("eSpin").innerText=spinE;
+    save();
+}
+update();
+
+// ------------------ REF SYSTEM ------------------
+let users = JSON.parse(localStorage.getItem("allUsers")) || [];
+let myRefs = users.filter(u=>u.referrer===user);
+document.getElementById("refCount").innerText=myRefs.length;
+
+myRefs.forEach((r,i)=>{
+    if(i==0) refBal+=3000;
+    else if(i==1) refBal+=1500;
+    else refBal+=800;
+});
+update();
+
+// ------------------ WITHDRAW ------------------
+function withdraw(){
+    let amt=parseInt(document.getElementById("amt").value);
+    let num=document.getElementById("number").value;
+    if(!num||amt>refBal) return alert("Error");
+    refBal-=amt;
+    let final=amt-1500;
+    withdrawn+=final;
+
+    let reqs=JSON.parse(localStorage.getItem("withdraws"))||[];
+    reqs.push({user,amount:final,status:"Pending"});
+    localStorage.setItem("withdraws",JSON.stringify(reqs));
+
+    let r=document.getElementById("history").insertRow();
+    r.insertCell(0).innerText=final;
+    r.insertCell(1).innerText="Pending";
+    update();
+}
+
+// ------------------ VIDEOS ------------------
+for(let i=1;i<=10;i++){
+    let btn=document.createElement("button");
+    btn.innerText="Watch "+i+" (10s)";
+    btn.onclick=function(){
+        btn.disabled=true;
+        setTimeout(()=>{
+            income+=500; vid+=500;
+            btn.innerText="Claimed";
+            update();
+        },10000);
+    };
+    document.getElementById("vids").appendChild(btn);
+}
+
+// ------------------ SPIN ------------------
+function spin(){
+    if(spins>=2) return alert("No spins");
+    spins++;
+    let win=[50,100][Math.floor(Math.random()*2)];
+    income+=win; spinE+=win;
+    document.getElementById("spinRes").innerText="Win "+win;
+    update();
+}
+
+// ------------------ DAILY ------------------
+let last = localStorage.getItem("daily");
+function daily(){
+    let now=Date.now();
+    if(last && now-last<86400000) return alert("Come tomorrow");
+    income+=200;
+    localStorage.setItem("daily",now);
+    document.getElementById("dailyTxt").innerText="Claimed";
+    update();
+}
+
+// ------------------ LEADERBOARD ------------------
+let board = document.getElementById("board");
+users.sort((a,b)=>b.referrer-a.referrer).slice(0,3).forEach((u,i)=>{
+    board.innerHTML+=`<p>${i+1}. ${u.username}</p>`;
+});
+
+// ------------------ REFS ------------------
+function showRefs(){alert(JSON.stringify(myRefs,null,2));}
+
+// ------------------ MENU ------------------
+function toggleMenu(){
+    let m=document.getElementById("menu");
+    m.style.display=(m.style.display=="block")?"none":"block";
+}
+function show(id){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    toggleMenu();
+}
+
+// ------------------ MODE ------------------
+function toggleMode(){
+    document.body.style.background=(document.body.style.background=="white")?"#0f172a":"white";
+    document.body.style.color=(document.body.style.color=="black")?"white":"black";
+}
+
+// ------------------ LOGOUT ------------------
+function logout(){
+    localStorage.removeItem("currentUser");
+    window.location.href="index.html";
+}
+
+</script>
+</body>
+</html>
